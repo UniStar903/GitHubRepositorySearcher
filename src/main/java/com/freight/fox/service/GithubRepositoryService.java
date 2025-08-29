@@ -33,12 +33,18 @@ public class GithubRepositoryService implements GithubRespositoryServ{
     
     @Value("${git.hub.base.search.repository.url}")
     private String url; 
-	
-    public List<RepositoryEntity> searchAndSaveRepositories(Request request) {
+
+	@Value("${github.token}")
+    private String githubToken; 
+
+	public List<RepositoryEntity> searchAndSaveRepositories(Request request) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", "token " + githubToken);
+		HttpEntity<String> entityKey = new HttpEntity<>(headers);
 		ResponseEntity<Root> root = restTemplate.exchange(
 			//https://api.github.com/search/repositories?q=spring+boot+language:Java&s=stars
 				url+"?q="+request.getQuery().replace(' ', '+')+"+language:"+request.getLanguage()+"&sort="+request.getSort()
-				, HttpMethod.GET, null, Root.class);
+				, HttpMethod.GET, entityKey, Root.class);
 		System.out.println(url+"?q="+request.getQuery().replace(' ', '+')+"+language:"+request.getLanguage()+"&sort="+request.getSort());
 		Root rootBody = root.getBody();
 		if (rootBody == null || rootBody.getItems() == null)
